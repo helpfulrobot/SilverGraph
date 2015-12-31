@@ -9,7 +9,8 @@
  *
  */
 
-class Silvergraph extends CliController {
+class Silvergraph extends CliController
+{
 
     private static $allowed_actions = array(
         "dot",
@@ -17,9 +18,10 @@ class Silvergraph extends CliController {
         "svg"
     );
 
-    private function paramDefault($param, $default = null, $type = "string") {
+    private function paramDefault($param, $default = null, $type = "string")
+    {
         $value = $this->request->getVar($param);
-        if  (($type == "string" && empty($value)) ||
+        if (($type == "string" && empty($value)) ||
             ($type == "numeric" && !is_numeric($value))) {
             $value= $default;
         }
@@ -31,8 +33,8 @@ class Silvergraph extends CliController {
      *
      * @return String a dot compatible data format
      */
-    public function dot(){
-
+    public function dot()
+    {
         $opt = array();
 
         $opt['location'] =      $this->paramDefault('location', 'mysite');
@@ -59,7 +61,7 @@ class Silvergraph extends CliController {
         //Get all classes in a specific folder(s)
         $folders = explode(",", $opt['location']);
         $folderClasses = array();
-        foreach($folders as $folder) {
+        foreach ($folders as $folder) {
             if (!empty($folder)) {
                 $folderClasses[$folder] = ClassInfo::classes_for_folder($folder);
             }
@@ -68,10 +70,11 @@ class Silvergraph extends CliController {
         $excludeArray = explode(",", $opt['exclude']);
 
         //Get the intersection of the two - grouped by the folder
-        foreach($dataClasses as $key => $dataClass) {
-            foreach($folderClasses as $folder => $classList) {
-                foreach($classList as $folderClass) {
-                    if (strtolower($dataClass) == strtolower($folderClass)) {;
+        foreach ($dataClasses as $key => $dataClass) {
+            foreach ($folderClasses as $folder => $classList) {
+                foreach ($classList as $folderClass) {
+                    if (strtolower($dataClass) == strtolower($folderClass)) {
+                        ;
                         //Remove all excluded classes
                         if (!in_array($dataClass, $excludeArray)) {
                             $renderClasses[$folder][$dataClass] = $dataClass;
@@ -87,8 +90,7 @@ class Silvergraph extends CliController {
 
         $folders = new ArrayList();
 
-        foreach($renderClasses as $folderName => $classList) {
-
+        foreach ($renderClasses as $folderName => $classList) {
             $folder = new DataObject();
             $folder->Name = $folderName;
             $folder->Group = ($opt['group'] == 1);
@@ -110,7 +112,6 @@ class Silvergraph extends CliController {
                 $fields = new ArrayList();
 
                 if ($opt['fields'] > 0) {
-
                     if ($opt['fields'] > 1) {
                         $dataFields = $singleton->inheritedDatabaseFields();
                     } else {
@@ -219,16 +220,17 @@ class Silvergraph extends CliController {
         return $output;
     }
 
-    public static function relationObject($relationArray, $excludeArray, $manyManyClass = false) {
+    public static function relationObject($relationArray, $excludeArray, $manyManyClass = false)
+    {
         $relationList = new ArrayList();
         if (is_array($relationArray)) {
-            foreach($relationArray as $name => $remoteClass) {
+            foreach ($relationArray as $name => $remoteClass) {
                 //Only add the relation if it's not in the exclusion array
                 if (!in_array($remoteClass, $excludeArray)) {
                     $relation = new DataObject();
                     $relation->Name = $name;
                     $relation->RemoteClass = $remoteClass;
-                    if($manyManyClass) {
+                    if ($manyManyClass) {
                         $object = new $manyManyClass();
                         $relation->ExtraFields = self::formatDataFields($object->many_many_extraFields($name));
                     }
@@ -239,16 +241,17 @@ class Silvergraph extends CliController {
         return $relationList;
     }
 
-    public static function formatDataFields($dataFields, $fields = null) {
-        if(!$fields) {
+    public static function formatDataFields($dataFields, $fields = null)
+    {
+        if (!$fields) {
             $fields = new ArrayList();
         }
 
-        if(!is_array($dataFields)) {
+        if (!is_array($dataFields)) {
             return $fields;
         }
 
-        foreach($dataFields as $fieldName => $dataType) {
+        foreach ($dataFields as $fieldName => $dataType) {
             $field = new DataObject();
             $field->FieldName = $fieldName;
 
@@ -267,7 +270,8 @@ class Silvergraph extends CliController {
     /** Generate a png file from the dot template
      *
      */
-    public function png() {
+    public function png()
+    {
         $dot = $this->dot();
         $output = $this->execute("-Tpng", $dot);
 
@@ -279,7 +283,8 @@ class Silvergraph extends CliController {
     /** Generate a svg file from the dot template
      *
      */
-    public function svg() {
+    public function svg()
+    {
         $dot = $this->dot();
         $output = $this->execute("-Tsvg", $dot);
 
@@ -293,8 +298,8 @@ class Silvergraph extends CliController {
      * (eg;  apt-get install graphviz)
      *
      */
-    private function execute($parameters, $input) {
-
+    private function execute($parameters, $input)
+    {
         $cmd = 'dot ' . $parameters;
         if (defined('SILVERGRAPH_GRAPHVIZ_PATH')) {
             $cmd = SILVERGRAPH_GRAPHVIZ_PATH . $cmd;
